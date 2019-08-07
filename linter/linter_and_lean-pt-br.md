@@ -1,7 +1,7 @@
 # Linter e Lean
 
 ## Objetivo
-Mostrar como uma ferramenta de linter (checagem estática de código) tem a ver com metodologia Lean
+Mostrar o que uma ferramenta de linter tem a ver com metodologia Lean
 
 ## O que é um Linter
 É uma ferramenta de verificação estática de código
