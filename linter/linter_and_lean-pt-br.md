@@ -56,8 +56,7 @@ Para finalizar indico configurar o [Husky](https://github.com/typicode/husky) e 
 ## Conclusão
 Implementar uma verificação automatizada do seu código,vai ajuda na entrega do seu código auxiliando e muito principalmente nos processos de code review, evitando assim o desperdício de tempo em leitura de código e de refatoração por razões de formatação ou padrão de sintaxe.
 
-![codereview](codereview_friendly.png)
-<small>Imagem da internet</small>
+![Imagem da internet](codereview_friendly.png)
 
 
 
