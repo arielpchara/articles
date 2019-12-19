@@ -12,7 +12,6 @@ Writing the code of how it will be called
 Like this:
 ```js
 // beautifulness.spec.js
-
 const { createBeauty, theNameOf, withRealJewels, inCaseOfFireCall } = require('./beautifulness')
 
 const helpMe = jest.fn()
@@ -21,7 +20,8 @@ const helpMe = jest.fn()
 const {
   sayMyName,
   hasRealJewels,
-  setFire
+  setFire,
+  doSomething
 } = createBeauty(
   // pass parameters an easy way
   theNameOf('Precious'),
@@ -40,6 +40,10 @@ it('Should call helpMe method when set fire', () => {
   setFire('fire')
   expect(helpMe).toBeCalledWith('fire')
 })
+it('Should call helpMe method when doSomething', () => {
+  doSomething()
+  expect(helpMe).toBeCalledWith('fire')
+})
 ```
 
 Probably all these tests have gone fail, of course, I don't write the module yet.
@@ -47,44 +51,63 @@ Probably all these tests have gone fail, of course, I don't write the module yet
 ## Writing the module or my real code
 
 ```js
-// beautifulness.js
-
 function compose(...fns) {
   return fns.reduce((composed, fn) => {
     return fn(composed)
   }, {})
 }
 
-function sayMyName(beauty) {
-  return () => `My Name is ${beauty.name}`
-}
+// INPUTS
 
-function hasRealJewels(beauty) {
-  return () => beauty.hasJewel
-}
-
-function setFire(beauty) {
-  return (err) => beauty.errorHandler(err)
-}
-
-function createBeauty(...configs) {
-  return {
-    sayMyName: compose(...configs, sayMyName),
-    hasRealJewels: compose(...configs, hasRealJewels),
-    setFire: compose(...configs, setFire)
-  }
-}
-
+// Add name key in config factory
 function theNameOf(name) {
   return (config) => ({...config, name })
 }
 
+// Add hasJewel key in config factory
 const withRealJewels = (config) => ({...config, hasJewel: true})
 
+// Add event errorHandler in config factory
 function inCaseOfFireCall(errorHandler) {
   return (config) => ({...config, errorHandler })
 }
 
+// OUTPUTS
+// Get name property
+function sayMyName(properties) {
+  return () => `My Name is ${properties.name}`
+}
+// Get hasJewel property
+function hasRealJewels(properties) {
+  return () => properties.hasJewel
+}
+// Run errorHandler event
+function setFire(properties) {
+  return (err) => properties.errorHandler(err)
+}
+
+function doSomething(properties) {
+  return (...args) => {
+    try {
+      get(...args)
+    } catch (err) {
+      properties.errorHandler(err)
+    }
+  } 
+}
+
+
+// FACTORY
+function createBeauty(...configs) {
+  return {
+    sayMyName: compose(...configs, sayMyName),
+    hasRealJewels: compose(...configs, hasRealJewels),
+    setFire: compose(...configs, setFire),
+    doSomething: compose(...configs, doSomething)
+  }
+}
+
+// EXPORT FUNCTION
 module.exports = {
   createBeauty,
   theNameOf,
