@@ -1,4 +1,4 @@
-# Write beautify code with TDD 
+# [Draft] Write beautify code with TDD 
 
 Over my career as a coder I wrote a lot of shit code.
 The way which I thought to apologies was changing my dedication to learn how to write better code, until finding the state of art in code pattern.
