@@ -92,3 +92,8 @@ module.exports = {
   inCaseOfFireCall
 }
 ```
+
+## Files
+
+- [beautifulness.js](./beautifulness.js)
+- [beautifulness.spec.js](./beautifulness.spec.js)
