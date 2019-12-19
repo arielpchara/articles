@@ -6,7 +6,8 @@ const helpMe = jest.fn()
 const {
   sayMyName,
   hasRealJewels,
-  setFire
+  setFire,
+  doSomething
 } = createBeauty(
   // pass parameters an easy way
   theNameOf('Precious'),
@@ -23,5 +24,9 @@ it('Should precious has jewels', () => {
 })
 it('Should call helpMe method when set fire', () => {
   setFire('fire')
+  expect(helpMe).toBeCalledWith('fire')
+})
+it('Should call helpMe method when doSomething', () => {
+  doSomething()
   expect(helpMe).toBeCalledWith('fire')
 })
