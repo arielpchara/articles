@@ -65,13 +65,17 @@ call('hello')
 
 // so
 
-try {
-  const message = call('hello')
-  const status = sendMessage(message)
-  const newFoo = createNewFoo(status)
-} catch (e) {
-  cancelImplementation(e)
+async function run() {
+  try {
+    const message = await call('hello')
+    const status = await sendMessage(message)
+    const newFoo = await createNewFoo(status)
+  } catch (e) {
+    await cancelImplementation(e)
+  }
 }
+
+run()
 ```
 
 Mas aí você veja o último exemplo, não te lembra alguma coisa que começa com PH e termina com P (estruturado)?
