@@ -54,7 +54,7 @@ call('hello').then((message) => {
 })
 
 
-// god, but
+// good, but
 
 call('hello')
   .then(sendMessage)
