@@ -1,117 +1,105 @@
-# TDD: a better experience
+# Maybe you need a better experience with TDD
 
-Inspired by an article I read about the overvaluation of unit tests, I want to share my perspective on automated testing — unit, integration, and end-to-end — and how **the order in which you think about tests changes everything**.
+Inspired by an article I read about the overvaluation of unit tests, I decided to write this text to share my point of view on automated tests — unit, integration, or end-to-end — and how the order in which you think about them changes everything.
 
-This is not about code coverage. It's about a way of working that uses tests to guide design, increase confidence, and make evolving code far less scary.
+This text aims to show an implementation journey, applying techniques I believe to be good testing practices.
 
----
+## Before we start: order matters
 
-## The problem with "writing tests after"
+There's a very common habit in teams: write the code first and the tests later. That seems reasonable — after all, you need the code to test it, right?
 
-Most teams write code first, tests later. That seems reasonable — after all, you need the code to test it, right?
+The problem is that tests written after the fact tend to validate the implementation you created, not the behavior you needed. You shape the tests to cover the code that exists — not to define the contract that should have existed.
 
-The problem is that tests written after the fact tend to test **the implementation** you created, not **the behavior** you needed. You shape the tests to cover existing code, not to define the contract that should have existed.
+TDD inverts that order. You write the test first, and the code is born to satisfy it.
 
-TDD inverts that order: **you write the test first, and the code is born to satisfy it**.
+The cycle has three steps — **Red → Green → Refactor**:
+- **Red** — write a failing test. It defines what you want.
+- **Green** — write the minimum code to make the test pass.
+- **Refactor** — improve the code without breaking the tests.
 
-The cycle is simple — it's called **Red → Green → Refactor**:
+The discipline is in respecting all three. Especially not skipping the "minimum code" part and jumping straight to an elaborate solution.
 
-1. **Red** — write a failing test. It defines the expected behavior.
-2. **Green** — write the minimum code to make the test pass.
-3. **Refactor** — improve the code without breaking the tests.
+There are also a few ideas floating around about TDD that are worth clearing up before we go further:
 
-Nothing more. The discipline is in respecting the three steps — especially not skipping the "minimum code" part and jumping straight to an elaborate solution.
-
----
-
-## Common misconceptions
-
-**"TDD is about code coverage"**
-It's not. 100% coverage doesn't mean the tests are useful. A test that verifies `add(2, 2)` returns `4` covers the line but doesn't guarantee business behavior.
-
-**"Unit tests are the most important"**
-Not necessarily. A unit test that mocks everything except the function under test can pass 100% while the system as a whole is still broken. The **testing pyramid** exists to balance this.
-
-**"TDD is slow"**
-TDD is slower at the start of a feature. It's much faster when you need to change that feature six months later.
-
-**"I need to test every line"**
-You need to test **behaviors**, not lines. If a behavior is covered by multiple code paths, one well-written test can cover all of them.
-
----
+"TDD is about code coverage" — it's not. 100% coverage doesn't mean the tests are useful.
+"Unit tests are the most important" — not necessarily. A unit test that mocks everything can pass 100% while the whole system is broken.
+"TDD is slow" — it's slower at the start of a feature. It's much faster when you need to change that feature six months later.
 
 ## The testing pyramid
+
+Before getting into the journeys, it's worth aligning where each type of test fits.
 
 ```
         /\
        /  \
-      / E2E \        ← few, slow, expensive — test the whole system
+      / E2E \        ← few, slow, expensive
      /--------\
-    /Integration\    ← moderate — test collaboration between parts
+    /Integration\    ← moderate
    /--------------\
-  /   Unit Tests   \ ← many, fast, cheap — test isolated behavior
+  /   Unit Tests   \ ← many, fast, cheap
  /------------------\
 ```
 
 Each layer has a different role:
+- **Unit** — test isolated logic of a function or module. Fast, easy to maintain.
+- **Integration** — test collaboration between parts. One module calling another, real I/O.
+- **E2E** — test the complete user flow. Slow and expensive to maintain.
 
-| Type | What it tests | Speed | Maintenance cost |
-|---|---|---|---|
-| **Unit** | Isolated logic of a function/class | Very fast | Low |
-| **Integration** | Collaboration between modules, real I/O | Moderate | Moderate |
-| **E2E** | Complete user flow | Slow | High |
+The most common mistake is inverting this pyramid: few unit tests, no integration, everything in E2E. The result is a slow, brittle suite that, when it breaks, doesn't tell you where the problem is.
 
-The common mistake is **inverting the pyramid**: few unit tests, no integration, and trusting everything to E2E. The result is a slow, brittle test suite that doesn't tell you where the problem is when it breaks.
+## Scenario
 
----
+The project has several products, and one team per product.
+There is a strong need to reuse code across all products.
+Each team specializes in solving business problems.
+There is a team that specializes in solving technical problems for all the other teams.
+The libraries created must have a high level of trust.
+Documentation and consistency in the use of the libraries are essential for these technical products.
 
-## The scenario
+Let's split these examples into two journeys:
+  - Tool development (libraries)
+  - Product development
 
-To keep this concrete, let's work in a real context:
+## Tool development journey (libraries)
 
-> A project with multiple products and teams. There's a strong need to share code across products. One team specializes in technical infrastructure — they build libraries used by the other teams. These libraries need a high level of trust, good documentation, and a consistent API.
+This team's goal is to build a technological structure to receive the needs of the product (business), so anticipating those needs is an important characteristic.
 
-Two journeys:
-- **Tool development (libraries)**
-- **Product development (business features)**
+The "clients" of this product will be the other developers on the project, and just like any client, they need to trust that the product does what it promises. For that to happen, a good explanation of the tool is essential — documentation and usage guides.
 
----
+So whoever is developing must first figure out how the implementation will be done.
 
-## Journey 1: tool development (libraries)
+**How to solve the contract first:**
 
-The infrastructure team builds tools for other teams. Their "clients" are developers — and like any client, they need to trust that the tool does what it promises.
+1. A good starting point is those libraries you admire and enjoy using.
+2. Write pre-documentation of how you'd like to use this library, here's an example:
 
-### Step 1: the contract comes first
-
-Before writing any implementation, define how the library will be **used**. Write the usage documentation before the code exists:
-
-```ts
-// how to use — written before any implementation
+```js
+// how to use
 import { createConnector } from '@company/tools'
 
+// simple connection
 const connector = createConnector({
-  uri: 'http://localhost:3000',
-  timeout: 5000
+  uri: 'http://localhost:3000'
 })
 
 async function use() {
-  const data = await connector.getData<User[]>('/users')
-  console.log(data) // User[]
+  const data = await connector.getData('/users')
+  console.log(data)
 }
 ```
 
-This exercise forces you to think about **API ergonomics** before any implementation decision. Function names, parameters, return values — all of it becomes clear here.
+This documentation will most likely evolve, but it will help you focus on the problem to be solved in a more objective way. The function names, the parameters, what it returns — all of that becomes clear before you open an implementation file.
 
-### Step 2: tests define the contract
+### Now the test journey begins
 
-Now transform that documentation into tests. The test knows nothing about the implementation — it only knows the contract you just defined:
+Since you already have the function signature, turn that documentation into tests. The test doesn't know about the implementation — it only knows the contract you just defined:
 
 ```ts
 // connector.test.ts
 import { createConnector } from '@company/tools'
 
 describe('createConnector', () => {
-  it('should return data from the given endpoint', async () => {
+  it('returns data from the given endpoint', async () => {
     const connector = createConnector({ uri: 'http://localhost:3000' })
 
     const data = await connector.getData('/users')
@@ -119,13 +107,13 @@ describe('createConnector', () => {
     expect(data).toEqual([{ id: 1, name: 'Alice' }])
   })
 
-  it('should throw when the endpoint is unreachable', async () => {
-    const connector = createConnector({ uri: 'http://unreachable-host' })
+  it('throws an error when the endpoint is unreachable', async () => {
+    const connector = createConnector({ uri: 'http://nonexistent-host' })
 
     await expect(connector.getData('/users')).rejects.toThrow()
   })
 
-  it('should respect the configured timeout', async () => {
+  it('respects the configured timeout', async () => {
     const connector = createConnector({ uri: 'http://slow-server', timeout: 100 })
 
     await expect(connector.getData('/users')).rejects.toThrow(/timeout/i)
@@ -133,20 +121,15 @@ describe('createConnector', () => {
 })
 ```
 
-**These tests will fail.** That's expected — it's the **Red** of the cycle.
+These tests will fail — and that's expected. That's the **Red** of the cycle.
 
-### Step 3: minimum implementation to pass (Green)
+Now write the minimum to make them pass (**Green**):
 
 ```ts
 // connector.ts
 import axios from 'axios'
 
-interface ConnectorConfig {
-  uri: string
-  timeout?: number
-}
-
-export function createConnector(config: ConnectorConfig) {
+export function createConnector(config: { uri: string, timeout?: number }) {
   const client = axios.create({
     baseURL: config.uri,
     timeout: config.timeout ?? 10000
@@ -161,18 +144,18 @@ export function createConnector(config: ConnectorConfig) {
 }
 ```
 
-Tests pass. Now it's time for **Refactor** — extract constants, improve names, add more expressive types — without breaking the tests.
+The tests pass. Now it's time for **Refactor** — extract constants, improve types, organize better — without breaking anything.
 
-### Step 4: integration tests to verify the real contract
+### The integration test closes the contract
 
-The unit tests above may use a mock server. But for an infrastructure library, you want at least one integration test that uses a real connection:
+The unit tests above can use a mock server. But for an infrastructure library, you want at least one test that uses a real connection — to make sure the contract works for real, not just in simulation:
 
 ```ts
 // connector.integration.test.ts
 import { createConnector } from '@company/tools'
 import { startMockServer, stopMockServer } from './test-helpers'
 
-describe('connector integration', () => {
+describe('connector — integration', () => {
   let serverUrl: string
 
   beforeAll(async () => {
@@ -191,22 +174,20 @@ describe('connector integration', () => {
 })
 ```
 
-The rule is clear: **unit tests cover logic, integration tests cover the glue between parts**.
+Unit tests cover the logic. Integration tests cover the glue between the parts.
 
----
-
-## Journey 2: product development (business features)
+## Product development journey
 
 The product team solves business problems. Here TDD has a different flavor: you're not defining an API for other developers — you're implementing rules that exist in someone's head (PO, stakeholder, user).
 
-### Step 1: start from the expected behavior
+**How to solve the contract first:**
 
-Before opening the editor, ask: **what does this code need to do?** Write the tests in behavioral language:
+Before opening the editor, ask: what does this code need to do? Write the tests in behavioral language — not implementation language:
 
 ```ts
 // checkout.test.ts
 describe('Checkout', () => {
-  it('should apply a 10% discount when the cart has more than 5 items', () => {
+  it('applies a 10% discount when the cart has more than 5 items', () => {
     const cart = createCart([
       { product: 'A', price: 100 },
       { product: 'B', price: 100 },
@@ -221,7 +202,7 @@ describe('Checkout', () => {
     expect(total).toBe(540) // 600 - 10%
   })
 
-  it('should not apply discount when cart has 5 or fewer items', () => {
+  it('does not apply discount when the cart has 5 or fewer items', () => {
     const cart = createCart([
       { product: 'A', price: 100 },
       { product: 'B', price: 100 },
@@ -232,7 +213,7 @@ describe('Checkout', () => {
     expect(total).toBe(200)
   })
 
-  it('should apply free shipping when total exceeds 500 after discount', () => {
+  it('applies free shipping when the total after discount exceeds 500', () => {
     const cart = createCart([/* 6 items at 100 each */])
 
     const result = checkout(cart)
@@ -242,17 +223,12 @@ describe('Checkout', () => {
 })
 ```
 
-Notice: the tests describe **business rules**, not implementation. If the PO changes the rule from 5 to 10 items, you update the test and the implementation follows.
+Notice: the tests describe business rules, not implementation. If the PO changes the rule from 5 to 10 items, you update the test and the implementation follows.
 
-### Step 2: implementation guided by tests
+Now the implementation guided by the tests:
 
 ```ts
 // checkout.ts
-interface CartItem {
-  product: string
-  price: number
-}
-
 const DISCOUNT_THRESHOLD = 5
 const DISCOUNT_RATE = 0.10
 const FREE_SHIPPING_THRESHOLD = 500
@@ -272,119 +248,96 @@ export function checkout(items: CartItem[]) {
 }
 ```
 
-### Step 3: when to mock and when not to
+### When to mock and when not to
 
-One of the biggest sources of confusion in product tests is overuse of mocks.
-
-**Practical rule:**
+One of the biggest points of confusion in product tests is overusing mocks. The practical rule is simple:
 - Mock **external dependencies** (APIs, databases, third-party services)
 - **Don't mock** the business logic you're testing
 
 ```ts
 // ✅ correct — mock the external dependency, real logic
-it('should save the order after checkout', async () => {
+it('saves the order after checkout', async () => {
   const mockRepository = { save: jest.fn().mockResolvedValue({ id: 'order-123' }) }
   const service = new OrderService(mockRepository)
 
   const result = await service.placeOrder(cart)
 
-  expect(mockRepository.save).toHaveBeenCalledWith(expect.objectContaining({
-    total: 540,
-    items: cart
-  }))
+  expect(mockRepository.save).toHaveBeenCalledWith(
+    expect.objectContaining({ total: 540 })
+  )
   expect(result.id).toBe('order-123')
 })
 
-// ❌ wrong — mocking the logic you should actually be testing
-it('should calculate total', () => {
+// ❌ wrong — mocking the very logic that should be tested
+it('calculates the total', () => {
   jest.spyOn(checkout, 'calculateTotal').mockReturnValue(540)
   // this tests nothing useful
 })
 ```
 
-### Step 4: E2E tests for critical flows
+### E2E for the flows that matter most
 
-Don't use E2E for everything — it's expensive and slow. Use it for flows that, if broken, cause the most damage:
+Don't use E2E for everything — it's expensive and slow. Use it for the flows that, if they break, cause the most damage:
 
 ```ts
 // checkout.e2e.test.ts
-describe('Checkout flow (E2E)', () => {
-  it('should complete a purchase from cart to confirmation', async () => {
-    const user = await createTestUser()
-    const session = await loginAs(user)
+it('completes a purchase from cart to confirmation', async () => {
+  const user = await createTestUser()
+  const session = await loginAs(user)
 
-    await session.addToCart([
-      { productId: 'prod-1', quantity: 6 }
-    ])
+  await session.addToCart([{ productId: 'prod-1', quantity: 6 }])
 
-    const order = await session.checkout({
-      paymentMethod: 'credit_card',
-      address: testAddress
-    })
-
-    expect(order.status).toBe('confirmed')
-    expect(order.discount).toBeGreaterThan(0)
+  const order = await session.checkout({
+    paymentMethod: 'credit_card',
+    address: testAddress
   })
+
+  expect(order.status).toBe('confirmed')
+  expect(order.discount).toBeGreaterThan(0)
 })
 ```
 
----
+## Things that make a test worth writing
 
-## What makes a good test
+A few habits that make a real difference day to day:
 
-A well-written test follows the **FIRST** principles:
-
-| Principle | What it means |
-|---|---|
-| **F**ast | Must run in milliseconds. Slow tests don't get run. |
-| **I**solated | Must not depend on the state of another test. |
-| **R**epeatable | Must produce the same result regardless of environment. |
-| **S**elf-validating | Must have a clear `expect` — no need to inspect logs. |
-| **T**imely | Written alongside (or before) the code it tests. |
-
----
-
-## Common mistakes to avoid
-
-**Testing implementation details**
-```ts
-// ❌ fragile — any refactor breaks the test
-expect(service._internalCache.size).toBe(1)
-
-// ✅ robust — tests observable behavior
-expect(await service.getUser(1)).toEqual({ id: 1, name: 'Alice' })
-```
-
-**Vague naming**
+**Name as behavior, not as code**
 ```ts
 // ❌ doesn't say what failed
 it('should work', () => { ... })
 
 // ✅ self-documenting
-it('should return 404 when user does not exist', () => { ... })
+it('returns 404 when the user does not exist', () => { ... })
 ```
 
-**Giant setup before assertions**
-When `beforeEach` has 50 lines, nobody knows what the test is actually verifying. Use **builders** or **factories** to create test data in a readable way:
+**Don't test implementation details**
+```ts
+// ❌ fragile — any refactor breaks it
+expect(service._internalCache.size).toBe(1)
+
+// ✅ robust — tests what's observable
+expect(await service.getUser(1)).toEqual({ id: 1, name: 'Alice' })
+```
+
+**Use factories to build test data**
+
+When `beforeEach` has 50 lines, nobody knows what the test is actually verifying anymore. Factories fix that:
 
 ```ts
-// ✅ with factory
+// ✅ readable, no noise
 const cart = cartFactory.withItems(6).withPricePerItem(100).build()
 const total = calculateTotal(cart)
 expect(total).toBe(540)
 ```
 
----
+## To wrap up
 
-## Summary
+TDD is not about tests. It's about design guided by the behavior you want to see.
 
-TDD is not about tests. It's about **design guided by expected behavior**.
+Start from the contract — how it will be used, not how it will be implemented.
+Write the failing test before any code.
+Implement the minimum to pass, then refactor.
+Use the pyramid: many unit tests, some integration, few E2E.
+Name tests as behaviors, not as lines of code.
 
-- Start from the contract (how it will be used), not the implementation
-- Write the failing test before any code
-- Implement the minimum to pass — then refactor
-- Use the pyramid: many unit tests, some integration, few E2E
-- Mock external dependencies, not the logic you want to test
-- Name your tests as behaviors, not as code
-
-The discipline of TDD feels slow at first. But it's what allows a project to evolve for years without becoming untouchable.
+The discipline of TDD feels slower at first. But it's what allows a project to evolve for years without becoming untouchable.
