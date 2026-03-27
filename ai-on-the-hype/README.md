@@ -2,6 +2,8 @@
 
 I went to South Summit this year (2026). At least 80% of all panels talked about something + AI. So I decided to put down some ideas, not about AI itself, but about how people are reacting to it.
 
+And I'm not talking about what I saw at the Summit. At the Summit I saw awesome speakers and real insights. I'm talking about what I see every day on the internet, on LinkedIn, in every comment section where AI comes up.
+
 Let's split people into three categories, just to make this easier. Think of them less as boxes and more as shades on a spectrum.
 
 - The deniers

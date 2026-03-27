@@ -2,6 +2,8 @@
 
 Fui ao South Summit esse ano (2026). Pelo menos 80% dos painéis falavam sobre algo + AI. Então resolvi colocar algumas ideias no papel, não sobre a tecnologia em si, mas sobre como as pessoas estão reagindo a ela.
 
+E não estou falando do que vi no Summit. No Summit eu vi palestrantes incríveis e insights de verdade. Estou falando do que vejo todo dia na internet, no LinkedIn, em qualquer lugar onde o assunto AI aparece.
+
 Vamos separar as pessoas em três categorias, só pra facilitar a explicação. Pense menos em caixas e mais em tons de um espectro.
 
 - Os negacionistas
