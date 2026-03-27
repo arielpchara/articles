@@ -50,3 +50,7 @@ Saí do South Summit mais convicto de que o problema não é a tecnologia. O pro
 Os negacionistas precisam separar a identidade deles das ferramentas. Os animados precisam ser honestos sobre o que existe hoje, não o que só existe em pitch decks. E os céticos (as pessoas que de fato entendem isso) precisam falar mais alto.
 
 Não pra combater o hype. Mas silêncio também é uma escolha, e alguém vai preencher esse espaço.
+
+---
+
+*Se pareceu um desabafo, talvez tenha sido. Mas acho que vem do lugar certo. A gente tá tudo tentando entender isso.*

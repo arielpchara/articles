@@ -50,3 +50,7 @@ I left South Summit more convinced that the problem isn't the technology. The pr
 The deniers need to separate their identity from their toolchain. The enthusiasts need to be honest about what exists today, not what only exists in pitch decks. And the skeptics (the people who actually understand this stuff) need to be louder.
 
 Not to fight the hype. But silence is also a choice, and someone will fill that space.
+
+---
+
+*If this came across as a rant, maybe it was. But I think it comes from the right place. We're all figuring this out.*
